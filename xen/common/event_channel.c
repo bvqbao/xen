@@ -105,6 +105,7 @@ static int virq_is_global(uint32_t virq)
     case VIRQ_DEBUG:
     case VIRQ_XENOPROF:
     case VIRQ_XENPMU:
+    case VIRQ_TOPOLOGY:
         rc = 0;
         break;
     case VIRQ_ARCH_0 ... VIRQ_ARCH_7:

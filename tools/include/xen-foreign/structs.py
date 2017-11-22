@@ -12,6 +12,7 @@ structs = [ "start_info",
             "vcpu_time_info",
             "vcpu_info",
             "arch_shared_info",
+            "pnode_memrange_info",
             "shared_info" ];
 
 defines = [ "__arm__",
@@ -56,6 +57,7 @@ defines = [ "__arm__",
             "xen_pfn_to_cr3",
             "xen_cr3_to_pfn",
             "XEN_LEGACY_MAX_VCPUS",
+            "MAX_PNODES",
             "MAX_GUEST_CMDLINE" ];
 
 # Architectures which must be compatible, i.e. identical

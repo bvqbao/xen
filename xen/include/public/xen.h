@@ -181,6 +181,7 @@ DEFINE_XEN_GUEST_HANDLE(xen_ulong_t);
 #define VIRQ_XC_RESERVED 11 /* G. Reserved for XenClient                     */
 #define VIRQ_ENOMEM     12 /* G. (DOM0) Low on heap memory       */
 #define VIRQ_XENPMU     13 /* V.  PMC interrupt                              */
+#define VIRQ_TOPOLOGY   14 /* V. Topology has been changed.                  */
 
 /* Architecture-specific VIRQ definitions. */
 #define VIRQ_ARCH_0    16
@@ -692,6 +693,19 @@ struct vcpu_info {
 typedef struct vcpu_info vcpu_info_t;
 #endif
 
+#define MAX_PNODES     16
+ 
+struct pnode_memrange_info {
+#if defined(__i386__) || defined(__x86_64__)
+    unsigned long start_mfn;
+    unsigned long nr_pages;
+#elif defined(__arm__) || defined (__aarch64__)
+    uint64_t start_mfn;
+    uint64_t nr_pages;
+#endif
+};
+typedef struct pnode_memrange_info pnode_memrange_info_t;
+
 /*
  * `incontents 200 startofday_shared Start-of-day shared data structure
  * Xen/kernel shared data -- pointer provided in start_info.
@@ -754,6 +768,8 @@ struct shared_info {
 
     struct arch_shared_info arch;
 
+    uint8_t vcpu_to_pnode[XEN_LEGACY_MAX_VCPUS];
+    struct pnode_memrange_info pnode_memranges[MAX_PNODES];
 };
 #ifndef __XEN__
 typedef struct shared_info shared_info_t;

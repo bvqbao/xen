@@ -900,6 +900,9 @@ int arch_set_info_guest(
     unsigned long flags, cr4;
     unsigned int i;
     int rc = 0, compat;
+    uint8_t node_id = cpu_to_node(v->processor);
+    struct pnode_memrange_info *memrange;
+
 
     /* The context is a compat-mode one if the target domain is compat-mode;
      * we expect the tools to DTRT even in compat-mode callers. */
@@ -1265,7 +1268,31 @@ int arch_set_info_guest(
     clear_bit(_VPF_in_reset, &v->pause_flags);
 
     if ( v->vcpu_id == 0 )
+    {
         update_domain_wallclock_time(d);
+
+        if ( d->domain_id != 0 && is_pv_domain(d) )
+        {
+            for_each_online_node ( i )
+            {
+                memrange = (struct pnode_memrange_info *)
+                                 &shared_info(d, pnode_memranges)[i];
+                memrange->start_mfn = node_start_pfn(i);
+                memrange->nr_pages = node_spanned_pages(i);
+ 
+                printk("Dom%u: pnode%d start_mfn=%lu nr_pages=%lu\n",
+                         d->domain_id, i, memrange->start_mfn,
+                         memrange->nr_pages);
+            }
+        }
+    }
+
+    if ( d->domain_id != 0 && is_pv_domain(d) )
+    {
+        printk("Dom%u: vcpu%u -> pnode%u\n",
+                 d->domain_id, v->vcpu_id, node_id);
+        shared_info(d, vcpu_to_pnode)[v->vcpu_id] = node_id;
+    }
 
     /* Don't redo final setup */
     v->is_initialised = 1;
