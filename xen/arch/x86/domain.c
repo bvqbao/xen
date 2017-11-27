@@ -901,8 +901,7 @@ int arch_set_info_guest(
     unsigned int i;
     int rc = 0, compat;
     uint8_t node_id = cpu_to_node(v->processor);
-    struct pnode_memrange_info *memrange;
-
+    unsigned long *memranges;
 
     /* The context is a compat-mode one if the target domain is compat-mode;
      * we expect the tools to DTRT even in compat-mode callers. */
@@ -1273,16 +1272,15 @@ int arch_set_info_guest(
 
         if ( d->domain_id != 0 && is_pv_domain(d) )
         {
+	    memranges = (unsigned long *)shared_info(d, pnode_memranges);
+
             for_each_online_node ( i )
             {
-                memrange = (struct pnode_memrange_info *)
-                                 &shared_info(d, pnode_memranges)[i];
-                memrange->start_mfn = node_start_pfn(i);
-                memrange->nr_pages = node_spanned_pages(i);
+                memranges[2*i] = node_start_pfn(i);
+                memranges[2*i+1] = node_spanned_pages(i);
  
                 printk("Dom%u: pnode%d start_mfn=%lu nr_pages=%lu\n",
-                         d->domain_id, i, memrange->start_mfn,
-                         memrange->nr_pages);
+                         d->domain_id, i, memranges[2*i], memranges[2*i+1]);
             }
         }
     }

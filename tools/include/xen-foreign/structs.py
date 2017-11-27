@@ -12,7 +12,6 @@ structs = [ "start_info",
             "vcpu_time_info",
             "vcpu_info",
             "arch_shared_info",
-            "pnode_memrange_info",
             "shared_info" ];
 
 defines = [ "__arm__",

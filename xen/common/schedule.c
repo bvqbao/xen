@@ -1393,6 +1393,7 @@ static void schedule(void)
     struct domain        *domain;
     uint8_t current_node, last_node;
 
+   
     ASSERT_NOT_IN_ATOMIC();
 
     SCHED_STAT_CRANK(sched_run);
@@ -1499,11 +1500,9 @@ static void schedule(void)
  
         if ( last_node != current_node )
         {
-            printk("INFO: The vcpu %u of domain %u has been "
-                   "migrated from node %u to node %u\n",
-                    next->vcpu_id, domain->domain_id,
-                    last_node, current_node);
- 
+            printk("Dom%u: vcpu%u node%u -> node%u\n", domain->domain_id, 
+			next->vcpu_id, last_node, current_node);
+
             shared_info(domain, vcpu_to_pnode)[next->vcpu_id] = current_node;
             /* send_guest_vcpu_virq(next, VIRQ_TOPOLOGY); */
         }

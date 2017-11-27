@@ -694,17 +694,6 @@ typedef struct vcpu_info vcpu_info_t;
 #endif
 
 #define MAX_PNODES     16
- 
-struct pnode_memrange_info {
-#if defined(__i386__) || defined(__x86_64__)
-    unsigned long start_mfn;
-    unsigned long nr_pages;
-#elif defined(__arm__) || defined (__aarch64__)
-    uint64_t start_mfn;
-    uint64_t nr_pages;
-#endif
-};
-typedef struct pnode_memrange_info pnode_memrange_info_t;
 
 /*
  * `incontents 200 startofday_shared Start-of-day shared data structure
@@ -769,7 +758,11 @@ struct shared_info {
     struct arch_shared_info arch;
 
     uint8_t vcpu_to_pnode[XEN_LEGACY_MAX_VCPUS];
-    struct pnode_memrange_info pnode_memranges[MAX_PNODES];
+#if defined(__i386__) || defined(__x86_64__)
+    unsigned long pnode_memranges[2*MAX_PNODES];
+#elif defined(__arm__) || defined (__aarch64__)
+    uint64_t pnode_memranges[2*MAX_PNODES];
+#endif
 };
 #ifndef __XEN__
 typedef struct shared_info shared_info_t;
