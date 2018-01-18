@@ -1500,11 +1500,8 @@ static void schedule(void)
  
         if ( last_node != current_node )
         {
-            printk("Dom%u: vcpu%u node%u -> node%u\n", domain->domain_id, 
-			next->vcpu_id, last_node, current_node);
-
             shared_info(domain, vcpu_to_pnode)[next->vcpu_id] = current_node;
-            /* send_guest_vcpu_virq(next, VIRQ_TOPOLOGY); */
+            send_guest_vcpu_virq(next, VIRQ_TOPOLOGY);
         }
     }
 

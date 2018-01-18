@@ -648,7 +648,7 @@ struct xen_vnuma_topology_info {
 typedef struct xen_vnuma_topology_info xen_vnuma_topology_info_t;
 DEFINE_XEN_GUEST_HANDLE(xen_vnuma_topology_info_t);
 
-/* Next available subop number is 28 */
+#define XENMEM_get_vnumainfo2                28
 
 #endif /* __XEN_PUBLIC_MEMORY_H__ */
 

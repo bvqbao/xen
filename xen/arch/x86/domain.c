@@ -1278,19 +1278,12 @@ int arch_set_info_guest(
             {
                 memranges[2*i] = node_start_pfn(i);
                 memranges[2*i+1] = node_spanned_pages(i);
- 
-                printk("Dom%u: pnode%d start_mfn=%lu nr_pages=%lu\n",
-                         d->domain_id, i, memranges[2*i], memranges[2*i+1]);
             }
         }
     }
 
     if ( d->domain_id != 0 && is_pv_domain(d) )
-    {
-        printk("Dom%u: vcpu%u -> pnode%u\n",
-                 d->domain_id, v->vcpu_id, node_id);
         shared_info(d, vcpu_to_pnode)[v->vcpu_id] = node_id;
-    }
 
     /* Don't redo final setup */
     v->is_initialised = 1;

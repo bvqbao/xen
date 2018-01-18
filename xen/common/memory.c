@@ -1358,6 +1358,25 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
         break;
     }
 
+    case XENMEM_get_vnumainfo2:
+    {
+	int i, j, nnodes;
+	int dist_table[MAX_PNODES * MAX_PNODES] = {0};
+
+	rc = -EFAULT;
+
+	nnodes = num_online_nodes();
+
+	for(i = 0; i < nnodes; i++)
+		for (j = 0; j < nnodes; j++)
+			dist_table[i*MAX_PNODES+j] = __node_distance(i, j);
+
+	rc = raw_copy_to_guest((void*)arg.p, (void*)dist_table, 
+			sizeof(dist_table)) ? -EFAULT : 0;	
+
+	break;
+    }
+
 #ifdef CONFIG_HAS_PASSTHROUGH
     case XENMEM_reserved_device_memory_map:
     {
