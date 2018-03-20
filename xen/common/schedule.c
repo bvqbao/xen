@@ -1393,7 +1393,6 @@ static void schedule(void)
     struct domain        *domain;
     uint8_t current_node, last_node;
 
-   
     ASSERT_NOT_IN_ATOMIC();
 
     SCHED_STAT_CRANK(sched_run);

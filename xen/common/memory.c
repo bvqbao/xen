@@ -1358,22 +1358,73 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
         break;
     }
 
-    case XENMEM_get_vnumainfo2:
+    case XENMEM_get_numainfo:
     {
-	int i, j, nnodes;
-	int dist_table[MAX_PNODES * MAX_PNODES] = {0};
+	int i, j, num_nodes, num_domnodes, vcpuid;
+	unsigned int *distance, *memnode_map;
+	unsigned long *memranges;
+	struct xen_numa_topology_info topology;
+
+	if ( copy_from_guest(&topology, arg, 1) )
+		return -EFAULT;
+
+	num_nodes = num_online_nodes();
+	if (num_nodes > XEN_NUMNODES)
+		num_nodes = XEN_NUMNODES;
+
+	distance = xmalloc_array(unsigned int, XEN_NUMNODES * XEN_NUMNODES);
+	memnode_map = xmalloc_array(unsigned int, XEN_NUMNODES);
+	memranges = xmalloc_array(unsigned long, 2 * num_nodes);
+
+	if ( distance == NULL || memranges == NULL ||
+		memnode_map == NULL ) {
+		rc = -ENOMEM;
+		goto numainfo_out;
+	}
 
 	rc = -EFAULT;
 
-	nnodes = num_online_nodes();
+	for( i = 0; i < num_nodes; i++ ) {
+		for ( j = 0; j < num_nodes; j++ )
+			distance[i*XEN_NUMNODES+j] = __node_distance(i, j);
 
-	for(i = 0; i < nnodes; i++)
-		for (j = 0; j < nnodes; j++)
-			dist_table[i*MAX_PNODES+j] = __node_distance(i, j);
+		memranges[2*i] = node_start_pfn(i);
+		memranges[2*i+1] = node_spanned_pages(i);
 
-	rc = raw_copy_to_guest((void*)arg.p, (void*)dist_table, 
-			sizeof(dist_table)) ? -EFAULT : 0;	
+		memnode_map[i] = node_isset(i, curr_d->node_affinity);
+	}
 
+	num_domnodes = nodes_weight(curr_d->node_affinity);
+	for (i = 0; i < num_domnodes; i++) {
+		vcpuid = i;
+		while (vcpuid < curr_d->max_vcpus &&
+				curr_d->vcpu[vcpuid] != NULL) {
+			vcpu_set_soft_affinity(curr_d->vcpu[vcpuid],
+				&node_to_cpumask(i));
+			vcpuid += num_domnodes;
+		}
+	}
+
+	if ( copy_to_guest(topology.distance, distance,
+			XEN_NUMNODES * XEN_NUMNODES) != 0 )
+		goto numainfo_out;
+
+	if ( copy_to_guest(topology.memnode_map, memnode_map,
+			XEN_NUMNODES) != 0 )
+		goto numainfo_out;
+
+	if ( copy_to_guest(topology.memranges, memranges,
+			2 * num_nodes) != 0 )
+		goto numainfo_out;
+
+	topology.nr_nodes = num_nodes;
+
+	rc = __copy_to_guest(arg, &topology, 1) ? -EFAULT : 0;
+
+numainfo_out:
+	xfree(distance);
+	xfree(memnode_map);
+	xfree(memranges);
 	break;
     }
 
