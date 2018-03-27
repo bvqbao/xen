@@ -1360,7 +1360,7 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case XENMEM_get_numainfo:
     {
-	int i, j, num_nodes, num_domnodes, vcpuid;
+	int i, j, num_nodes, num_domnodes, vcpuid, vcpus_per_node;
 	unsigned int *distance, *memnode_map;
 	unsigned long *memranges;
 	struct xen_numa_topology_info topology;
@@ -1395,13 +1395,19 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 	}
 
 	num_domnodes = nodes_weight(curr_d->node_affinity);
-	for (i = 0; i < num_domnodes; i++) {
-		vcpuid = i;
-		while (vcpuid < curr_d->max_vcpus &&
-				curr_d->vcpu[vcpuid] != NULL) {
-			vcpu_set_soft_affinity(curr_d->vcpu[vcpuid],
-				&node_to_cpumask(i));
-			vcpuid += num_domnodes;
+	vcpus_per_node = curr_d->max_vcpus / num_domnodes;
+	nid = first_node(curr_d->node_affinity);
+	for (i = j = 0; i < curr_d->max_vcpus; i++) {
+		if (curr_d->vcpu[i] != NULL) {
+			j++;
+			vcpu_set_soft_affinity(curr_d->vcpu[i],
+				&node_to_cpumask(nid));
+		}
+		if (j >= vcpus_per_node) {
+			j = 0;
+			nid = next_node(nid, curr_d->node_affinity);
+			if (nid == MAX_NUMNODES)
+				nid = first_node(curr_d->node_affinity);
 		}
 	}
 
