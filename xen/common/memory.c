@@ -1360,7 +1360,7 @@ long do_memory_op(unsigned long cmd, XEN_GUEST_HANDLE_PARAM(void) arg)
 
     case XENMEM_get_numainfo:
     {
-	int i, j, num_nodes, num_domnodes, vcpuid, vcpus_per_node;
+	int i, j, num_nodes, num_domnodes, nid, vcpus_per_node;
 	unsigned int *distance, *memnode_map;
 	unsigned long *memranges;
 	struct xen_numa_topology_info topology;
