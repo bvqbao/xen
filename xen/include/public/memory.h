@@ -651,9 +651,13 @@ DEFINE_XEN_GUEST_HANDLE(xen_vnuma_topology_info_t);
 #define XENMEM_get_numainfo             28
 
 struct xen_numa_topology_info {
+	/* Machine/physical information */
 	unsigned int nr_nodes;
 	XEN_GUEST_HANDLE(xen_ulong_t) memranges;
 	XEN_GUEST_HANDLE(uint) distance;
+
+	/* VM information */
+	unsigned int nr_cpus;
 	XEN_GUEST_HANDLE(uint) memnode_map;
 };
 
